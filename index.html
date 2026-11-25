@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#3f6b3a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Paellas">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Calculadora de paellas</title>
+<style>
+:root{--bg:#f3f5ef;--card:#fff;--ink:#1f2a1d;--mut:#5d6b59;--line:#d9dfd2;--acc:#e0a100;--onacc:#1f1700;--grn:#3f6b3a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a13;--card:#1d261c;--ink:#eef2e8;--mut:#a3b09e;--line:#2f3b2d;--acc:#f0b429;--onacc:#1f1700;--grn:#8fc287;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141a13;--card:#1d261c;--ink:#eef2e8;--mut:#a3b09e;--line:#2f3b2d;--acc:#f0b429;--onacc:#1f1700;--grn:#8fc287;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:28px;line-height:1.15;margin:8px 0 4px;letter-spacing:-.5px}
+h2{font-size:21px;margin:8px 0 12px}
+p.sub{color:var(--mut);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+label.f{display:block;font-weight:600;margin-bottom:8px}
+.step{display:flex;gap:10px;align-items:stretch}
+.step button{width:56px;font-size:28px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:56px}
+.step input{flex:1;min-width:0;text-align:center;font-size:28px;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);min-height:56px}
+.step input:focus{outline:3px solid var(--acc);border-color:var(--acc)}
+.btn{display:block;width:100%;min-height:54px;border:0;border-radius:14px;font-size:18px;font-weight:700;background:var(--acc);color:var(--onacc);margin-top:8px}
+.btn.sec{background:transparent;color:var(--ink);border:1.5px solid var(--line);font-weight:600}
+.row{display:flex;gap:10px}.row .btn{margin-top:8px}
+.seg{display:flex;gap:8px;margin-bottom:12px}
+.seg button{flex:1;min-height:54px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:16px;font-weight:600}
+.seg button.on{border-color:var(--acc);background:var(--acc);color:var(--onacc)}
+.chk{display:flex;align-items:center;gap:12px;min-height:50px;padding:6px 4px;border-bottom:1px solid var(--line)}
+.chk:last-child{border:0}.chk input{width:26px;height:26px;accent-color:var(--grn)}
+.mini{display:flex;gap:8px;margin-bottom:8px}.mini button{flex:1;min-height:44px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:15px}
+.ing{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ing b{font-size:19px}.tot{font-size:24px;font-weight:800;color:var(--grn)}
+.per{color:var(--mut);font-size:15px;margin-top:2px}
+.ext{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:16px}
+.ext div{margin:4px 0}
+.chip{display:inline-block;background:var(--acc);color:var(--onacc);border-radius:999px;padding:3px 12px;font-weight:700;font-size:15px}
+.err{color:#c0392b;font-weight:600;margin:6px 0 0}
+.ln{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.card .ln:last-child{border:0}
+.ln b{text-align:right}
+.sm{color:var(--mut);font-size:15px;margin:-4px 0 6px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+var PL=[1,5,10,20,30,40,50,60,80,100,120,150,180];
+var PIM=[0.3,1.5,3,6,9,12,15,18,24,30,36,45,54];
+var VER=[0.03333,0.16665,0.3333,0.6666,0.9999,1.3332,1.6665,1.9998,2.6664,3.333,3.9996,5,5];
+var ING=[
+{n:"Aceite",u:"L",v:[0.022,0.11,0.22,0.44,0.66,0.88,1.1,1.32,1.76,2.2,2.64,3.3,3.96]},
+{n:"Sal",u:"g",v:[5,25,50,100,150,200,250,300,400,500,600,750,900]},
+{n:"Pollo",u:"kg",v:[0.15,0.75,1.5,3,4.5,6,7.5,9,12,15,18,22.5,27]},
+{n:"Conejo",u:"kg",v:[0.07,0.35,0.7,1.4,2.1,2.8,3.5,4.2,5.6,7,8.4,10.5,12.6]},
+{n:"Judía verde",u:"kg",v:VER},
+{n:"Tomate triturado",u:"kg",t:1,v:[0.02,0.1,0.2,0.4,0.6,0.8,1,1.2,1.6,2,2.4,2.8,2.8]},
+{n:"Pimentón dulce",u:"g",v:PIM},
+{n:"Agua",u:"L",w:1,v:[0.2,1,2,4,6,8,10,12,16,20,24,30,36]},
+{n:"Colorante",u:"g",v:PIM},{n:"Romero",u:"g",v:PIM},
+{n:"Garrofón",u:"kg",v:VER},
+{n:"Arroz",u:"kg",v:[0.1,0.5,1,2,3,4,5,6,8,10,12,15,18]}];
+function qty(g,P){
+ var i=PL.indexOf(P);if(i>=0)return g.v[i];
+ for(i=1;i<PL.length;i++)if(P<PL[i])break;
+ var a=PL[i-1],b=PL[i],t=(P-a)/(b-a);
+ return g.v[i-1]+(g.v[i]-g.v[i-1])*t;
+}
+var S={scr:"home",pl:10,pa:1,mode:"all",sel:{},err:""};
+var $=function(id){return document.getElementById(id)};
+function num(v,d){return v.toLocaleString("es-ES",{maximumFractionDigits:d==null?2:d})}
+function fmt(v,u){
+ if(u==="kg")return v<1?num(v*1000,0)+" g":num(v)+" kg";
+ if(u==="L")return v<1?num(v*1000,0)+" ml":num(v)+" L";
+ return v>=1000?num(v/1000)+" kg":num(v)+" g";
+}
+function botesN(kg){
+ var g=Math.round(kg*1e6)/1e3,a=Math.floor(g/800+1e-9),r=g-a*800,b=0;
+ if(r>1e-6){if(r<=400+1e-9)b=1;else a++}
+ return [a,b];
+}
+function botesTxt(a,b){
+ var p=[];if(a)p.push(a+(a===1?" bote":" botes")+" de 800 g");if(b)p.push(b+(b===1?" bote":" botes")+" de 400 g");
+ return p.join(" + ")||"0 botes";
+}
+function botes(kg){var c=botesN(kg);return botesTxt(c[0],c[1])}
+function garr(l,s){return Math.ceil(Math.round(l/s*1e6)/1e6)}
+function plural(n,a,b){return n+" "+(n===1?a:b)}
+function render(){
+ var h="";
+ if(S.scr==="home"){
+  h='<h1>Calculadora de paellas</h1><p class="sub">Indica cuántos comensales come cada paella (de 1 a 180, el rango de la tabla) y cuántas paellas vas a hacer.</p>'+
+  '<div class="card"><label class="f" for="pl">Comensales por paella</label><div class="step"><button onclick="adj(\'pl\',-1)" aria-label="Menos">−</button><input id="pl" type="number" inputmode="numeric" min="1" value="'+S.pl+'"><button onclick="adj(\'pl\',1)" aria-label="Más">+</button></div></div>'+
+  '<div class="card"><label class="f" for="pa">Número de paellas</label><div class="step"><button onclick="adj(\'pa\',-1)" aria-label="Menos">−</button><input id="pa" type="number" inputmode="numeric" min="1" value="'+S.pa+'"><button onclick="adj(\'pa\',1)" aria-label="Más">+</button></div></div>'+
+  (S.err?'<p class="err">'+S.err+'</p>':'')+
+  '<button class="btn" onclick="toChoose()">Continuar</button>';
+ }else if(S.scr==="choose"){
+  h='<h1>¿Qué ingredientes?</h1><p class="sub">'+plural(S.pa,"paella","paellas")+' de '+plural(S.pl,"comensal","comensales")+'.</p>'+
+  '<div class="seg"><button class="'+(S.mode==="all"?"on":"")+'" onclick="setMode(\'all\')">Todos</button><button class="'+(S.mode==="some"?"on":"")+'" onclick="setMode(\'some\')">Elegir algunos</button></div>';
+  if(S.mode==="some"){
+   h+='<div class="mini"><button onclick="selAll(true)">Marcar todos</button><button onclick="selAll(false)">Quitar todos</button></div><div class="card">';
+   ING.forEach(function(g,i){h+='<label class="chk"><input type="checkbox" '+(S.sel[i]?"checked":"")+' onchange="tog('+i+',this.checked)"><span>'+g.n+'</span></label>'});
+   h+='</div>'+(S.err?'<p class="err">'+S.err+'</p>':'');
+  }
+  h+='<button class="btn" onclick="toSummary()">Ver resumen</button><div class="row"><button class="btn sec" onclick="go(\'home\')">Atrás</button><button class="btn sec" onclick="go(\'home\')">Menú principal</button></div>';
+ }else{
+  var M=S.pa,P=S.pl;
+  h='<h1>Resumen</h1><p class="sub"><span class="chip">'+plural(M,"paella","paellas")+'</span> de '+plural(P,"comensal","comensales")+' ('+plural(M*P,"comensal","comensales")+' en total)</p>';
+  var sh=function(g,v){
+   var x='';
+   if(g.t)x='<div class="sm">'+botes(v)+'</div>';
+   if(g.w){var e=v*1.2;x='<div class="sm">Con 20 % de evaporación: '+fmt(e,"L")+'<br>'+plural(garr(e,5),"garrafa","garrafas")+' de 5 L, o '+plural(garr(e,8),"garrafa","garrafas")+' de 8 L</div>'}
+   return x;
+  };
+  var vis=ING.filter(function(g,i){return S.mode==="all"||S.sel[i]});
+  h+='<h2>Lista de la compra</h2><div class="card">';
+  vis.forEach(function(g){
+   var v=qty(g,P)*M;
+   if(g.t){var pp=qty(g,P),c=botesN(pp);h+='<div class="ln"><span>'+g.n+'</span><b>'+botesTxt(c[0]*M,c[1]*M)+'</b></div><div class="sm">Cada paella: '+botes(pp)+(M>1?' (× '+M+')':'')+'</div>'}
+   else if(g.w){var e=v*1.2;h+='<div class="ln"><span>Agua</span><b>'+fmt(e,"L")+'</b></div><div class="sm">Con 20 % de evaporación: '+plural(garr(e,5),"garrafa","garrafas")+' de 5 L, o '+plural(garr(e,8),"garrafa","garrafas")+' de 8 L</div>'}
+   else h+='<div class="ln"><span>'+g.n+'</span><b>'+fmt(v,g.u)+'</b></div>';
+  });
+  h+='</div>';
+  for(var k=1;k<=M;k++){
+   h+='<h2>Paella '+k+'</h2><div class="card">';
+   vis.forEach(function(g){var v=qty(g,P);h+='<div class="ln"><span>'+g.n+'</span><b>'+fmt(v,g.u)+'</b></div>'+sh(g,v)});
+   h+='</div>';
+  }
+  h+='<button class="btn" onclick="go(\'choose\')">Cambiar ingredientes</button><div class="row"><button class="btn sec" onclick="go(\'choose\')">Atrás</button><button class="btn sec" onclick="go(\'home\')">Cambiar cantidades</button></div><button class="btn sec" onclick="go(\'home\')">Menú principal</button>';
+ }
+ $("app").innerHTML=h;window.scrollTo(0,0);
+}
+function readHome(){
+ var a=parseInt($("pl").value,10),b=parseInt($("pa").value,10);
+ if(!(a>=1)||!(b>=1)||a>180){S.err="Escribe un número de 1 o más. Los comensales por paella, hasta 180.";return false}
+ S.pl=a;S.pa=b;S.err="";return true;
+}
+function adj(k,d){var el=$(k),v=parseInt(el.value,10);if(!(v>=1))v=1;el.value=Math.min(k==="pl"?180:999,Math.max(1,v+d))}
+function toChoose(){if(readHome())S.scr="choose";render()}
+function setMode(m){S.mode=m;S.err="";render()}
+function tog(i,c){S.sel[i]=c}
+function selAll(v){ING.forEach(function(_,i){S.sel[i]=v});render()}
+function toSummary(){
+ if(S.mode==="some"&&!ING.some(function(_,i){return S.sel[i]})){S.err="Marca al menos un ingrediente.";render();return}
+ S.err="";S.scr="summary";render();
+}
+function go(s){S.scr=s;S.err="";render()}
+render();
+try{if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js')}catch(e){}
+</script>
+</body>
+</html>
